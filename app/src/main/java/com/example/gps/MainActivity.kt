@@ -1,5 +1,6 @@
 package com.example.gps
 
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.Criteria
 import android.location.Location
@@ -43,26 +44,31 @@ class MainActivity : AppCompatActivity() , LocationListener {
                 android.Manifest.permission.ACCESS_FINE_LOCATION,
                 android.Manifest.permission.ACCESS_COARSE_LOCATION),PERMISSION)
         }else{
-
-            val criterio = Criteria()
-            criterio.isCostAllowed = false
-            criterio.isAltitudeRequired = false
-            criterio.accuracy = Criteria.ACCURACY_FINE
-            provedor = manejador.getBestProvider(criterio,true).toString()
-            provedor.let {
-                manejador.requestLocationUpdates(
-                    it,
-                    TIEMPO_MIN,
-                    DISTANCE_MIN,
-                    this
-                )
-            }
-
-            val lastLocation = manejador.getLastKnownLocation(provedor)
-            lastLocation(lastLocation)
+            startLocation()
         }
     }
 
+    @SuppressLint("MissingPermission")
+    fun startLocation(){
+        val criterio = Criteria()
+        criterio.isCostAllowed = false
+        criterio.isAltitudeRequired = false
+        criterio.accuracy = Criteria.ACCURACY_FINE
+        provedor = manejador.getBestProvider(criterio,true).toString()
+        provedor.let {
+            manejador.requestLocationUpdates(
+                it,
+                TIEMPO_MIN,
+                DISTANCE_MIN,
+                this
+            )
+        }
+
+        val lastLocation = manejador.getLastKnownLocation(provedor)
+        lastLocation(lastLocation)
+    }
+
+    @SuppressLint("MissingPermission")
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -72,9 +78,11 @@ class MainActivity : AppCompatActivity() , LocationListener {
         if (requestCode == PERMISSION){
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
                 Toast.makeText(this, "Permisos Concedidos", Toast.LENGTH_SHORT).show()
+                startLocation()
             }
             else{
                 Toast.makeText(this, "Permisos denegados", Toast.LENGTH_SHORT).show()
+
             }
         }
     }
@@ -155,6 +163,11 @@ class MainActivity : AppCompatActivity() , LocationListener {
     override fun onPause() {
         super.onPause()
         manejador.removeUpdates(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        startLocation()
     }
 
 }
